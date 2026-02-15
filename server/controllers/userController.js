@@ -4,14 +4,14 @@ import mongoose, { Types } from "mongoose";
 
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
-  const foundUser = await User.findOne({ email }).lean();
-  if (foundUser) {
-    return res.status(409).json({
-      error: "User already exists",
-      message:
-        "A user with this email address already exists. Please try logging in or use a different email.",
-    });
-  }
+  // const foundUser = await User.findOne({ email }).lean();
+  // if (foundUser) {
+  //   return res.status(409).json({
+  //     error: "User already exists",
+  //     message:
+  //       "A user with this email address already exists. Please try logging in or use a different email.",
+  //   });
+  // }
   const session = await mongoose.startSession();
 
   try {
@@ -50,7 +50,16 @@ export const register = async (req, res, next) => {
       res
         .status(400)
         .json({ error: "Invalid input, please enter valid details" });
-    } else {
+    } else if(err.code === 11000 ){
+      if(err.keyValue.email){
+        return res.status(409).json({
+          error: "This email already exists",     // better performance using index
+          message:
+            "A user with this email address already exists. Please try logging in or use a different email.",
+        });
+      }
+    }
+     else {
       next(err);
     }
   }
