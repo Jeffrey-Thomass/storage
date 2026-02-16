@@ -7,6 +7,9 @@ import userRoutes from "./routes/userRoutes.js";
 import checkAuth from "./middlewares/authMiddleware.js";
 import { connectDB } from "./config/db.js";
 
+import dotenv from "dotenv";
+dotenv.config();
+
 await connectDB();
 
 const app = express();

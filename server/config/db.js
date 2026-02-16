@@ -2,9 +2,7 @@ import mongoose from "mongoose";
 
 export async function connectDB() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://jeffreythomas10566x_db_user:aj23XGthgGEZak1M@cluster0.0d8ktf7.mongodb.net/?appName=Cluster0"
-    );
+    await mongoose.connect(process.env.MONGO_CONNECTION_STRING);
 
     console.log("Database connected");
   } catch (err) {
