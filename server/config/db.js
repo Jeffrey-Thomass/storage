@@ -2,9 +2,7 @@ import mongoose from "mongoose";
 
 export async function connectDB() {
   try {
-    await mongoose.connect(
-      "mongodb://anurag:anurag123@localhost:27017/storageApp"
-    );
+    await mongoose.connect(process.env.MONGO_CONNECTION_STRING);
 
     console.log("Database connected");
   } catch (err) {
