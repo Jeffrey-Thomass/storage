@@ -12,6 +12,8 @@ export async function connectDB() {
   }
 }
 
+
+
 process.on("SIGINT", async () => {
   await mongoose.disconnect();
   console.log("Database Disconnected!");
