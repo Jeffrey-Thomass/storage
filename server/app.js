@@ -10,10 +10,11 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 dotenv.config();
 
+const secret = "HELLOWORLD_!123"
 await connectDB();
 
 const app = express();
-app.use(cookieParser());
+app.use(cookieParser(secret));
 app.use(express.json());
 app.use(
   cors({

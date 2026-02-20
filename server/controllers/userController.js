@@ -1,7 +1,7 @@
 import Directory from "../models/directoryModel.js";
 import User from "../models/userModel.js";
 import mongoose, { Types } from "mongoose";
-import crypto from "node:crypto";
+import crypto, { sign } from "node:crypto";
 
 
 // const secret = process.env.SECRET
@@ -81,14 +81,15 @@ export const login = async (req, res, next) => {
     expiry : Math.round(Date.now() / 1000 + 60)
   })
 
-  const signature = crypto.createHash('sha256').update(cookiePayload).update(secret).digest('base64url');
+  // const signature = crypto.createHash('sha256').update(cookiePayload).update(secret).digest('base64url');
 
-  const signedCookie = `${Buffer.from(cookiePayload).toString('base64url')}.${signature}`
+  // const signedCookie = `${Buffer.from(cookiePayload).toString('base64url')}.${signature}`
   res.cookie(
     "token",
-    signedCookie,
+    cookiePayload,
     {
       httpOnly: true,
+      signed: true,
       maxAge: 60 * 60 * 1000 * 24 * 7,
     }
   );
