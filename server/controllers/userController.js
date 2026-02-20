@@ -9,16 +9,11 @@ import crypto, { sign } from "node:crypto";
 const secret = "HELLOWORLD_!123"
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
-  // const foundUser = await User.findOne({ email }).lean();
-  // if (foundUser) {
-  //   return res.status(409).json({
-  //     error: "User already exists",
-  //     message:
-  //       "A user with this email address already exists. Please try logging in or use a different email.",
-  //   });
-  // }
+
+
   const session = await mongoose.startSession();
 
+  const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
   try {
     const rootDirId = new Types.ObjectId();
     const userId = new Types.ObjectId();
@@ -40,7 +35,7 @@ export const register = async (req, res, next) => {
         _id: userId,
         name,
         email,
-        password,
+        password : hashedPassword,
         rootDirId,
       },
       { session }
@@ -72,8 +67,20 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email, password });
+  // const newHashedPassword = crypto.createHash("sha256").update(password).digest("hex")
+  // const user = await User.findOne({ email, password : newHashedPassword }).lean();
+  // if (!user) {
+  //   return res.status(404).json({ error: "Invalid Credentials" });
+  // }
+
+  // OR
+  
+  const user = await User.findOne({ email}).lean();
   if (!user) {
+    return res.status(404).json({ error: "Invalid Credentials" });
+  }
+  const newHashedPassword = crypto.createHash("sha256").update(password).digest("hex")
+  if (user.password !== newHashedPassword) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
   const cookiePayload = JSON.stringify({

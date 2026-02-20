@@ -7,7 +7,6 @@ import crypto from "node:crypto";
 export default async function checkAuth(req, res, next) {
   console.log(req.signedCookies)
   console.log("_-----_")
-  console.log(JSON.parse(req.signedCookies.token))
   const { token } = req.signedCookies;
   if (!token) {
     res.clearCookie("token");
