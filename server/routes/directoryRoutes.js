@@ -10,8 +10,12 @@ import {
 
 const router = express.Router();
 
+
+
 router.param("parentDirId", validateIdMiddleware);
 router.param("id", validateIdMiddleware);
+
+
 
 router.get("/:id?", getDirectory);
 
