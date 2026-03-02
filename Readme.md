@@ -123,3 +123,120 @@ Compares hashes safely (constant-time comparison)
 Returns true / false
 
 So you never manually handle salt or hashing during login.
+
+
+
+1️⃣ Important rule: bcrypt hashes are self-contained
+
+A bcrypt hash is not just the hash.
+It already stores everything needed to verify the password later.
+
+Example hash:
+
+$2b$10$QpMUWmS1O8YcLlUopE9lkOcS5TmN.UDb44YdoGZh9rhsCJD7vX95e
+
+It contains 3 parts:
+
+Part	Meaning
+$2b$	Algorithm version
+$10$	Cost factor (rounds)
+QpMUWmS1O8YcLlUopE9lkO	Salt
+Remaining string	Final hash
+
+So the database only needs to store one string.
+
+2️⃣ What happens during signup (hashing)
+
+When user creates password:
+
+hash = bcrypt.hash(password, rounds)
+
+bcrypt does:
+
+Generate random salt
+
+Combine → password + salt
+
+Run expensive hashing algorithm
+
+Store → algorithm + rounds + salt + hash
+
+This is why hashing the same password twice gives different hashes.
+
+3️⃣ What happens during login (verification)
+
+User enters password → we do NOT decrypt the stored hash.
+
+Instead bcrypt does this:
+
+Extract salt + rounds from stored hash
+
+Re-hash the entered password using that salt
+
+Compare new hash with stored hash
+
+If equal → password is correct ✅
+
+So bcrypt verification = rehash + compare
+
+4️⃣ Why the first 29 characters matter
+
+First 29 chars:
+
+$2b$10$QpMUWmS1O8YcLlUopE9lkO
+
+This contains:
+
+algorithm
+
+cost factor
+
+salt
+
+If we reuse this part while hashing again → bcrypt recreates the same hash.
+
+That’s exactly what bcrypt.compare() secretly does.
+
+5️⃣ Why we use bcrypt.compare() in real apps
+
+Your manual method works, but compare() is safer because it:
+
+prevents timing attacks (constant-time comparison)
+
+avoids manual mistakes
+
+is the official secure method
+
+💻 Same code with intuitive naming
+
+Here’s your demo rewritten cleanly and clearly 👇
+
+import bcrypt from "bcrypt";
+
+// 🔒 Stored hash from database
+const storedPasswordHash =
+  "$2b$10$QpMUWmS1O8YcLlUopE9lkOcS5TmN.UDb44YdoGZh9rhsCJD7vX95e";
+
+// 👤 Password entered during login
+const enteredPassword = "password";
+
+// ✂️ Step 1: Extract algorithm + rounds + salt (first 29 chars)
+const saltAndCostFromHash = storedPasswordHash.substring(0, 29);
+
+// 🔁 Step 2: Re-hash entered password using same salt + rounds
+const recreatedHash = bcrypt.hashSync(
+  enteredPassword,
+  saltAndCostFromHash
+);
+
+// ⚖️ Step 3: Compare hashes
+const isPasswordCorrect = recreatedHash === storedPasswordHash;
+
+console.log("Password matches:", isPasswordCorrect);
+
+Output:
+
+Password matches: true
+🧠 One-line exam answer
+
+bcrypt verifies passwords by extracting the salt and cost from the stored hash, re-hashing the entered password with them, and comparing the hashes.
