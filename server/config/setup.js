@@ -1,7 +1,15 @@
-import { connectDB, client } from "./db.js";
 
+import dotenv from "dotenv";
+dotenv.config();
+
+import { connectDB} from "./db.js";
+import mongoose from "mongoose";
+
+await connectDB();
+const client =  mongoose.connection.getClient();
 try {
-  const db = await connectDB();
+
+  const db = mongoose.connection.db;
 
   const command = "collMod";
 
@@ -33,6 +41,9 @@ try {
           rootDirId: {
             bsonType: "objectId",
           },
+          __v: {
+            bsonType: "int",
+          },
         },
         additionalProperties: false,
       },
@@ -59,6 +70,9 @@ try {
           },
           parentDirId: {
             bsonType: ["objectId", "null"],
+          },
+          __v: {
+            bsonType: "int",
           },
         },
         additionalProperties: false,
@@ -88,7 +102,10 @@ try {
             bsonType: "objectId",
           },
           parentDirId: {
-            bsonType: ["objectId", "null"],
+            bsonType: "objectId"
+          },
+          __v: {
+            bsonType: "int",
           },
         },
         additionalProperties: false,
