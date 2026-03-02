@@ -39,3 +39,87 @@ The current approach relies heavily on client-side trust and lacks proper server
 
 
 this i s new line .... now this is an extra new line to see how the pr works and the merge req works 
+
+
+# 🔐 bcrypt — Password Hashing Notes
+
+## What is bcrypt?
+
+**bcrypt** is a password-hashing algorithm designed specifically for securely storing passwords.  
+It is intentionally **slow and salted** to protect against brute-force and rainbow-table attacks.
+
+---
+
+## Why we use bcrypt
+
+Never store plain passwords:
+
+password: mypassword123 ❌
+
+
+Instead store a bcrypt hash:
+
+
+password: $2b$10$KYVbZ5JFVfqu0oV98LnF5eTk4QTe2e4PQG7QNYfhumEpGdi/867AO ✅
+
+
+If the database leaks, attackers still can’t see the real password.
+
+---
+
+## How bcrypt hashes a password
+
+When you call:
+
+```js
+const hash = await bcrypt.hash(password, 10);
+
+bcrypt automatically:
+
+Generates a random salt
+
+Combines password + salt
+
+Runs a slow hashing algorithm
+
+Stores salt + cost + hash in one string
+
+Example bcrypt hash format
+$2b$10$KYVbZ5JFVfqu0oV98LnF5eTk4QTe2e4PQG7QNYfhumEpGdi/867AO
+│ │  │
+│ │  └─ Cost factor (work factor)
+│ └──── Algorithm version
+└────── Prefix
+Cost Factor (Work Factor)
+
+Controls how slow hashing is.
+
+bcrypt.hash(password, 10);
+
+Cost = 10 → 2¹⁰ hashing rounds
+
+Higher cost = more secure but slower.
+
+Typical values:
+
+10 → normal apps
+
+12 → high security
+
+How bcrypt compares passwords
+
+Login code:
+
+const isMatch = await bcrypt.compare(password, user.password);
+
+bcrypt internally:
+
+Extracts salt + cost from stored hash
+
+Hashes the entered password again
+
+Compares hashes safely (constant-time comparison)
+
+Returns true / false
+
+So you never manually handle salt or hashing during login.
