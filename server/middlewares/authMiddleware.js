@@ -1,28 +1,24 @@
 import e from "express";
 import User from "../models/userModel.js";
 import crypto from "node:crypto";
+import Session from "../models/sessionModel.js";
 
 
 
 export default async function checkAuth(req, res, next) {
   console.log(req.signedCookies)
   console.log("_-----_")
-  const { token } = req.signedCookies;
-  if (!token) {
-    res.clearCookie("token");
+  const { sid } = req.signedCookies;
+  if (!sid) {
+    res.clearCookie("sid");
     return res.status(401).json({ error: "Not logged in!" });
   }
-
-  const{id , expiry : expiryTimeInSeconds} = JSON.parse(token); 
-
-  // const expiryTimeInSeconds = parseInt(token.substr(24,32), 16);
-  const currentTimeInSeconds = Math.round(Date.now() / 1000);
-
-  if(currentTimeInSeconds > expiryTimeInSeconds) {
-    res.clearCookie("token");
-    return res.status(401).json({ error: "Not logged!" });
+  const session = await Session.findById(sid);
+  if(!session){
+    res.clearCookie("sid");
+    return res.status(401).json({ error: "Not logged in!" });
   }
-  const user = await User.findOne({ _id: id }).lean();
+  const user = await User.findOne({ _id: session.userId }).lean();
   if (!user) {
     return res.status(401).json({ error: "Not logged!" });
   }

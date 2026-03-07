@@ -3,11 +3,11 @@ import User from "../models/userModel.js";
 import mongoose, { Types } from "mongoose";
 import crypto, { sign } from "node:crypto";
 import bcrypt from "bcrypt"
+import Session from "../models/sessionModel.js";
 
 
 // const secret = process.env.SECRET
 
-const secret = "HELLOWORLD_!123"
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -79,17 +79,13 @@ export const login = async (req, res, next) => {
   if (!isPasswordValid) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
-  const cookiePayload = JSON.stringify({
-    id : user._id.toString(),
-    expiry : Math.round(Date.now() / 1000 + 60)
-  })
 
-  // const signature = crypto.createHash('sha256').update(cookiePayload).update(secret).digest('base64url');
+  const session = await Session.create({userId : user._id})
 
-  // const signedCookie = `${Buffer.from(cookiePayload).toString('base64url')}.${signature}`
+
   res.cookie(
-    "token",
-    cookiePayload,
+    "sid",
+    session.id,
     {
       httpOnly: true,
       signed: true,
@@ -108,6 +104,6 @@ export const getCurrentUser = (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("uid");
+  res.clearCookie("sid");
   res.status(204).end();
 };
