@@ -14,8 +14,6 @@ export const register = async (req, res, next) => {
 
   const session = await mongoose.startSession();
 
-
-  const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const rootDirId = new Types.ObjectId();
     const userId = new Types.ObjectId();
@@ -37,7 +35,7 @@ export const register = async (req, res, next) => {
         _id: userId,
         name,
         email,
-        password : `${hashedPassword}`,
+        password,
         rootDirId,
       },
       { session }
@@ -76,8 +74,17 @@ export const login = async (req, res, next) => {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
   const isPasswordValid = await bcrypt.compare(password, user.password);
+  // OR
+  // const isPasswordValid = await user.comparePassword(password);
+
   if (!isPasswordValid) {
     return res.status(404).json({ error: "Invalid Credentials" });
+  }
+  
+  const allSessions = await Session.find({userId : user._id}).sort({createdAt : -1})
+
+  if(allSessions.length >= 2){
+    await allSessions[0].deleteOne()
   }
 
   const session = await Session.create({userId : user._id})
@@ -103,7 +110,9 @@ export const getCurrentUser = (req, res) => {
   });
 };
 
-export const logout = (req, res) => {
+export const logout = async(req, res) => {
+  const { sid } = req.signedCookies
+  const session = await Session.findByIdAndDelete(sid)
   res.clearCookie("sid");
   res.status(204).end();
 };
